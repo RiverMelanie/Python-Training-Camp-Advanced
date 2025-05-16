@@ -8,7 +8,8 @@
 请补全下面的函数 `calculate_iou` 和 `nms`。
 """
 import numpy as np
-
+# from exercises.iou import calculate_iou
+import math
 def calculate_iou(box1, box2):
     """
     计算两个边界框的交并比 (IoU)。
@@ -25,6 +26,19 @@ def calculate_iou(box1, box2):
     # (与 iou.py 中的练习相同，可以复用代码或导入)
     # 提示：计算交集面积和并集面积，然后相除。
     pass
+    x_left = max(box1[0], box2[0])
+    y_top = max(box1[1], box2[1])
+    x_right = min(box1[2], box2[2])
+    y_bottom = min(box1[3], box2[3])
+    box1_area = max(0, box1[2] - box1[0]) * max(0, box1[1] - box1[3])
+    box2_area = max(0, box2[2] - box2[0]) * max(0, box2[1] - box2[3])
+    intersection_area = max(0, x_right - x_left) * max(0, y_bottom - y_top)
+    union_area = box1_area + box2_area - intersection_area
+    if intersection_area==0:
+        return 0.0
+    else:
+        IoU = intersection_area / union_area
+        return IoU
 
 def nms(boxes, scores, iou_threshold):
     """
@@ -53,3 +67,26 @@ def nms(boxes, scores, iou_threshold):
     #    d. 更新 order，只保留那些 IoU <= threshold 的框的索引 (order = order[inds + 1])。
     # 7. 返回 keep 列表。
     pass 
+    if len(boxes)==0:
+        return list()
+    boxes = np.array(boxes)
+    scores = np.array(scores)
+    areas = (boxes[:, 2] - boxes[:, 0]+ 1) * (boxes[:, 3] - boxes[:, 1]+ 1)
+    # areas = max(0, boxes[2] - boxes[0]) * max(0, boxes[1] - boxes[3])
+    order = np.argsort(scores)[::-1]
+    # print(order)
+    keep=list()
+    if len(order)!=0:
+        keep.append(order[0])
+        ious =list()
+        for i in range(1,len(order)):
+            x_left = max(boxes[0, 0], boxes[1, 0])
+            y_top = max(boxes[0, 1], boxes[1, 1])
+            x_right = min(boxes[0, 2], boxes[1, 2])
+            y_bottom = min(boxes[0, 3], boxes[1, 3])
+            intersection_area = max(0, x_right - x_left) * max(0, y_bottom - y_top)
+            IoU = intersection_area / (areas[i] + areas[order[1:]] - intersection_area)
+            ious.append(IoU)
+        inds = np.where(np.array(ious) <= iou_threshold)[0]
+        order = order[inds + 1]
+    return keep

@@ -31,3 +31,11 @@ def smooth_l1(x, sigma=1.0):
     # 4. 对不满足条件的元素应用第二个公式 (|x| - 0.5 / sigma2)。
     # 5. 可以使用 np.where() 来根据条件选择应用哪个公式。
     pass 
+    sigma2 = sigma*sigma
+    x=np.abs(x)
+    b=max(x)
+    if b < 1 / sigma2 :
+        a=0.5 * (sigma * x)**2
+    else:
+        a=x - 0.5 / sigma**2
+    return a
